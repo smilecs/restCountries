@@ -24,8 +24,10 @@ dependencies {
     implementation "com.android.support:appcompat-v7:${supportVersion}"
     implementation "com.android.support:support-v4:${supportVersion}"
     implementation "com.android.support:recyclerview-v7:${supportVersion}"
+    implementation "com.android.support:design:${supportVersion}"
     implementation "android.arch.lifecycle:viewmodel:1.1.1"
     implementation "android.arch.lifecycle:livedata:1.1.1"
+    implementation "android.arch.lifecycle:extensions:1.1.1"
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

@@ -3,4 +3,5 @@
     <string name="country">name</string>
     <string name="currencies">currencies</string>
     <string name="languages">languages</string>
+    <string name="error_case">Something went wrong</string>
 </resources>
