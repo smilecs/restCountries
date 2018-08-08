@@ -1,4 +1,4 @@
-package com.smile.restcountries.model;
+package com.smile.restcountries.repo.model;
 
 import java.util.ArrayList;
 import java.util.List;

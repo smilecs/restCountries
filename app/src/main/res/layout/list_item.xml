@@ -15,6 +15,7 @@
         <ImageView
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:id="@+id/delete"
             android:layout_gravity="center_vertical"
             android:src="@drawable/ic_delete"/>
     </LinearLayout>

@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.smile.restcountries.R;
-import com.smile.restcountries.model.CountryModel;
+import com.smile.restcountries.repo.model.CountryModel;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int i) {
         CountryModel countryModel = models.get(i);
         viewHolder.countryName.setText(countryModel.getName());
         if (!countryModel.getCurrency().isEmpty()) {
@@ -37,6 +37,12 @@ public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHold
         if (!countryModel.getLanguages().isEmpty()) {
             viewHolder.language.setText(countryModel.getLanguages().get(0).getName());
         }
+        viewHolder.delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeItem(i);
+            }
+        });
     }
 
     @Override
@@ -44,7 +50,7 @@ public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHold
         return models.size();
     }
 
-    public void removeItem(int position){
+    public void removeItem(int position) {
         models.remove(position);
         notifyItemRemoved(position);
     }
@@ -52,6 +58,7 @@ public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHold
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView countryName, language, currency;
         public LinearLayout viewBackground, viewForeground;
+        public View delete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -60,6 +67,7 @@ public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHold
             currency = itemView.findViewById(R.id.currency_textview);
             viewBackground = itemView.findViewById(R.id.view_background);
             viewForeground = itemView.findViewById(R.id.view_foreground);
+            delete = itemView.findViewById(R.id.delete);
         }
     }
 }

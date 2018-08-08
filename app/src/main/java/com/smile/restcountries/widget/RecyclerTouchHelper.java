@@ -1,28 +1,36 @@
 package com.smile.restcountries.widget;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
 
 import com.smile.restcountries.adapter.CountryAdapter;
 
 
-public class RecyclerTouchHelper extends ItemTouchHelper.SimpleCallback implements RecyclerView.OnItemTouchListener {
+public class RecyclerTouchHelper extends ItemTouchHelper.SimpleCallback {
     private TouchHelpListener touchHelpListener;
-    private VelocityTracker velocityTracker;
-    private Float velocityX;
-    private boolean swipeBack;
+    private boolean swipeBack, scroll, swiped, isCurrentlyActive;
+    private int actionState;
+    private View foregroundView;
+    private float fraction;
+    private Canvas c;
+    private float dY, dX;
+    private RecyclerView recyclerView;
+    private Context context;
 
-    public RecyclerTouchHelper(int dragDirs, int swipeDirs, TouchHelpListener touchHelpListener) {
+    public RecyclerTouchHelper(int dragDirs, int swipeDirs, TouchHelpListener touchHelpListener, Context context) {
         super(dragDirs, swipeDirs);
         this.touchHelpListener = touchHelpListener;
+        this.context = context;
+    }
+
+    public void setScroll(boolean scroll) {
+        this.scroll = scroll;
     }
 
     @Override
@@ -31,17 +39,15 @@ public class RecyclerTouchHelper extends ItemTouchHelper.SimpleCallback implemen
     }
 
     @Override
-    public int convertToAbsoluteDirection(int flags, int layoutDirection) {
-        if (swipeBack) {
-            swipeBack = false;
-            return 0;
-        }
-        return super.convertToAbsoluteDirection(flags, layoutDirection);
-    }
-
-    @Override
     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-        //touchHelpListener.onSwiped(viewHolder, i);
+        if (swiped) {
+            swiped = false;
+            touchHelpListener.onSwiped(viewHolder, i);
+        } else if ((swipeBack && fraction >= 0.4f) && !swiped) {
+            swiped = true;
+            getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, -200, 0f,
+                  actionState, false);
+        }
     }
 
     @Override
@@ -65,58 +71,45 @@ public class RecyclerTouchHelper extends ItemTouchHelper.SimpleCallback implemen
     }
 
     @Override
-    public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+    public void onChildDraw(@NonNull final Canvas c, @NonNull final RecyclerView recyclerView,
+                            @NonNull final RecyclerView.ViewHolder viewHolder,
+                            final float dX, final float dY, final int actionState, final boolean isCurrentlyActive) {
         final View foregroundView = ((CountryAdapter.ViewHolder) viewHolder).viewForeground;
-        float fraction = Math.abs(dX / viewHolder.itemView.getWidth());
-        Log.i("values", String.valueOf(-0.2f * viewHolder.itemView.getWidth()));
-        Log.i("fraction", String.valueOf(fraction));
-        switch (actionState) {
-            case ItemTouchHelper.ACTION_STATE_SWIPE:
-                Log.i("game", String.valueOf(fraction));
-                getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY,
-                      actionState, isCurrentlyActive);
-                break;
-            case ItemTouchHelper.ACTION_STATE_DRAG:
-                if (fraction > 0.4f) {
-                    Log.i("meg11", String.valueOf(fraction));
-                    getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, -0.2f * viewHolder.itemView.getWidth(), dY,
-                          actionState, isCurrentlyActive);
-                } else {
-                    getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY,
-                          actionState, isCurrentlyActive);
+        this.recyclerView = recyclerView;
+        this.dY = dY;
+        this.dX = dX;
+        this.foregroundView = foregroundView;
+        this.c = c;
+        fraction = Math.abs(dX / viewHolder.itemView.getWidth());
+        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getActionMasked()) {
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        swipeBack = true;
+                        scroll = false;
+                        break;
+                    case MotionEvent.ACTION_DOWN:
+                        swipeBack = false;
+                        reset(null, (CountryAdapter.ViewHolder) viewHolder);
+                        scroll = false;
+                        break;
                 }
-                break;
-            default:
-                getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY,
-                      actionState, isCurrentlyActive);
+                return false;
+            }
+        });
+        if (!scroll && !swipeBack) {
+            getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY,
+                  actionState, isCurrentlyActive);
         }
-        /*if (fraction > 0.4f) {
-            Log.i("meg11", String.valueOf(fraction));
-            getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, -200, dY,
-                  actionState, isCurrentlyActive);
-        } else if (fraction > 0.2f) {
-            Log.i("here1122", "here22");
-            getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY,
-                  actionState, isCurrentlyActive);
-        } else {
-            getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY,
-                  actionState, isCurrentlyActive);
-        }*/
     }
 
-    @Override
-    public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
-        return true;
-    }
-
-    @Override
-    public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
-        swipeBack = motionEvent.getAction() == MotionEvent.ACTION_CANCEL || motionEvent.getAction() == MotionEvent.ACTION_UP;
-    }
-
-    @Override
-    public void onRequestDisallowInterceptTouchEvent(boolean b) {
-
+    private void reset(View currentView, CountryAdapter.ViewHolder viewHolder) {
+        if (this.foregroundView != null && currentView != this.foregroundView) {
+            getDefaultUIUtil().clearView(this.foregroundView);
+            recyclerView.getAdapter().notifyItemChanged(viewHolder.getAdapterPosition());
+        }
     }
 
     public interface TouchHelpListener {

@@ -2,7 +2,6 @@ package com.smile.restcountries;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.graphics.Canvas;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,16 +12,14 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ProgressBar;
 
 import com.smile.restcountries.adapter.CountryAdapter;
-import com.smile.restcountries.model.CountryModel;
+import com.smile.restcountries.repo.CountryViewModel;
+import com.smile.restcountries.repo.model.CountryModel;
 import com.smile.restcountries.widget.RecyclerTouchHelper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements RecyclerTouchHelper.TouchHelpListener {
@@ -47,9 +44,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchHelp
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(countryAdapter);
-        RecyclerTouchHelper itemtouchCallback = new RecyclerTouchHelper(0, ItemTouchHelper.LEFT, this);
+        final RecyclerTouchHelper itemtouchCallback = new RecyclerTouchHelper(0, ItemTouchHelper.LEFT, this, this);
         new ItemTouchHelper(itemtouchCallback).attachToRecyclerView(recyclerView);
-        recyclerView.addOnItemTouchListener(itemtouchCallback);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                itemtouchCallback.setScroll(true);
+            }
+        });
         countryViewModel.getCountryLiveData().observe(this, new Observer<List<CountryModel>>() {
             @Override
             public void onChanged(@Nullable List<CountryModel> models) {

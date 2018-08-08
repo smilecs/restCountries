@@ -1,12 +1,13 @@
-package com.smile.restcountries;
+package com.smile.restcountries.repo;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.os.AsyncTask;
 
-import com.smile.restcountries.model.CountryModel;
-import com.smile.restcountries.model.CountryParser;
+import com.smile.restcountries.NetworkUtils;
+import com.smile.restcountries.repo.model.CountryModel;
+import com.smile.restcountries.repo.model.CountryParser;
 
 import java.io.IOException;
 import java.io.InputStream;
